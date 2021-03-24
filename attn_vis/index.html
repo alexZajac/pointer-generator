@@ -22,19 +22,63 @@ and available here:
   <link href='http://fonts.googleapis.com/css?family=Cousine' rel='stylesheet' type='text/css'>
 
   <style>
-  #wrap {
-    font-family: 'Cousine';
-    position:relative;
-    margin: 10px;
-    font-size: 15px;
+body {
+  /* background: linear-gradient(#ccc, #fff); */
+  font: 14px sans-serif;
+  padding: 20px;
+  display: flex;
+  align-items:center;
+  justify-content:center;
+  background-color: #00203F;
+  color: #00203F;
+}
+.letter {
+  flex: 1;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  margin: 26px auto 0;
+  max-width: 50%;
+  min-height: 300px;
+  padding: 24px;
+  position: relative;
+  font-family: 'Cousine';
+  margin: 10px;
+  font-size: 15px;
+  padding: 3%;
+}
+@media screen and (max-width: 1000px) {
+  .letter {
+    max-width: 90%;
   }
+}
+.letter:before, .letter:after {
+  content: "";
+  height: 98%;
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+.letter:before {
+  background: #fafafa;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  left: -5px;
+  top: 4px;
+  transform: rotate(-2.5deg);
+}
+.letter:after {
+  background: #f6f6f6;
+  box-shadow: 0 0 3px rgba(0,0,0,0.2);
+  right: -3px;
+  top: 1px;
+  transform: rotate(1.4deg);
+}
   </style>
   <script>
 
   json_fname = "attn_vis_data.json" // file containing the text and the weights
 
-  greenhue = 151
-  yellowhue = 56
+  greenhue = 154
+  redhue = 347
 
   function round(x, dp) {
     // round a float to dp decimal places
@@ -47,29 +91,29 @@ and available here:
     if (p<0 || p>1) {
       throw sprintf("Error: p has value %.2f but should be in [0,1]", p)
     }
-    var saturation = 100 // saturation percentage
+    var saturation = 91 // saturation percentage
     p = 1-p // invert so p=0 is light and p=1 is dark
-    var min_lightness = 50 // minimum percentage lightness, i.e. darkest possible color
+    var min_lightness = 60 // minimum percentage lightness, i.e. darkest possible color
     var lightness = (min_lightness + p*(100-min_lightness)) // lightness is proportional to p
     return sprintf('hsl(%d,%s%%,%s%%)', hue, saturation, lightness)
   }
 
-  function render_art(div, data, dec_idx, dec_word) {
+  function render_art(div, article_lst, data, dec_idx, dec_word) {
     // render the article. if dec_idx and dec_word are not null, we highlight the article with the attention distribution for decoder timestep dec_idx and corresponding decoder word dec_word
     var startix = 0;
-    var endix = data.article_lst.length
+    var endix = article_lst.length
     var attn_len = data.attn_dists[0].length
     var dec_len = data.attn_dists.length
 
     div.html(''); // flush
     for(var i=startix; i<endix; i++) {
-      var word = data.article_lst[i]; // a string
+      var word = article_lst[i]; // a string
       if (dec_idx == null) {
         var attn_wt = 0;
       } else {
         var attn_wt = data.attn_dists[dec_idx][i];
       }
-      var background_color = toColor(attn_wt, yellowhue);
+      var background_color = toColor(attn_wt, redhue);
       var css = 'background-color:' + background_color;
       css += ';display:inline'
       var word_html = word + ' '
@@ -79,9 +123,9 @@ and available here:
       if (i==attn_len) {
         dnew0 = div.append('div');
         dnew0.attr('class', 'd')
-          .attr('style', 'color:green; font-weight:bold; text-decoration:underline; display:inline;') // apply this style
+          .attr('style', 'color:white; font-weight:bold; display:inline; background-color: #256ADC;') // apply this style
           .html('ARTICLE TRUNCATED HERE. ');
-        break;
+        break
       }
 
       // write the sentence/word
@@ -93,8 +137,9 @@ and available here:
   }
 
 
-  function render_dec(div, data) {
+  function render_dec(div, data, network_idx) {
     // render the decoded summary
+    var data = data.networks_output[network_idx]
     var startix = 0;
     var endix = data.decoded_lst.length;
 
@@ -115,21 +160,21 @@ and available here:
         .attr('class', 'd')
         .attr('style', css) // apply this style
         // add interactivity for mouseover decoder words
-        .on('mouseover', getHandleMouseOver(i, word, p_gen))
+        .on('mouseover', getHandleMouseOver(i, word, p_gen, network_idx))
         .on('mousemove', handleMouseMove)
         .on('mouseout', handleMouseOut)
     }
   }
 
-  function getHandleMouseOver(dec_idx, dec_word, p_gen) {
+  function getHandleMouseOver(dec_idx, dec_word, p_gen, network_idx) {
      // When you mouseover a decoder word, shows attention distribution on article
      // p_gen is null for non-pointer models
     return function() {
       // Renders the article with the appropriate highlighting
-      render_art(d3.select('#art'), gdata, dec_idx, dec_word);
+      render_art(d3.select('#art'), gdata.article_lst, gdata.networks_output[network_idx], dec_idx, dec_word);
       // Show a tooltip giving value of p_gen
       if (p_gen != null) {
-        gtooltip.text(round(p_gen, 3))
+        gtooltip.text(`p_gen = ${round(p_gen, 3)}`)
         return gtooltip.style("visibility", "visible");
       }
     }
@@ -145,13 +190,6 @@ and available here:
     return gtooltip.style("visibility", "hidden");
   }
 
-  function render_abs(div,data) {
-    // Show the reference abstract (summary)
-    div.html(''); // flush
-    var dnew = div.append('div');
-    dnew.html(data.abstract_str);
-  }
-
   function get_json_and_disp() {
     // Retrieve the json data file and display the data
     console.log("fetching " + json_fname + "...")
@@ -159,17 +197,18 @@ and available here:
     function json_success(data) {
       // Displays the data
       console.log("success!")
-      d3.select("#curr_datafile").html('<font color="09B509">Currently displaying: ' + json_fname + "</font>")
+      d3.select("#header_mark").html("<h1>Visualize summary, attention and the probability of generation on your own content 🧬</h1>")
       gdata = data; // store globally
-      render_art(d3.select("#art"), gdata, null, null);
-      render_abs(d3.select("#abs"), gdata);
-      render_dec(d3.select("#dec"), gdata);
+      render_art(d3.select("#art"), gdata.article_lst, gdata.networks_output[0], null, null);
+      render_dec(d3.select("#dec-s2s"), gdata, 0);
+      render_dec(d3.select("#dec-pgen"), gdata, 1);
+      render_dec(d3.select("#dec-pgen_cov"), gdata, 2);
     }
 
     function json_fail(d) {
       // Tell the user it failed to load
       console.log("failure.")
-      d3.select("#curr_datafile").html('<font color="red">Failed to load ' + json_fname + "</font>")
+      d3.select("#header_mark").html('<font color="red">Failed to load ' + json_fname + "</font>")
     }
 
     $.getJSON(json_fname, json_success).fail(json_fail);
@@ -195,20 +234,26 @@ and available here:
   </script>
   </head>
   <body onload="start();">
-    <div id="wrap">
-      <div id="curr_datafile">
+    <div class="letter">
+      <div id="header_mark">
         Current datafile name goes here.
       </div>
-      <h2>Article</h2>
+      <br>
+      <h2>Original content</h2>
       <div id="art">
         article goes here
       </div>
-      <h2>Reference summary</h2>
-      <div id="abs">
-        reference summary goes here
+      <br>
+      <h2>1. Summary with base Seq2Seq architecture with attention</h2>
+      <div id="dec-s2s">
+        generated summary goes here
       </div>
-      <h2>Generated summary (highlighted = high generation probability)</h2>
-      <div id="dec">
+      <h2>2. Summary with Seq2Seq, attention and pointer-generator system</h2>
+      <div id="dec-pgen">
+        generated summary goes here
+      </div>
+      <h2>3. Summary with Seq2Seq, attention, pointer-generator, and coverage mechanism</h2>
+      <div id="dec-pgen_cov">
         generated summary goes here
       </div>
     </div>

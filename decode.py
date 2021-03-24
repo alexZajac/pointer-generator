@@ -123,6 +123,7 @@ class BeamSearchDecoder(object):
           tf.logging.info('We\'ve been decoding with same checkpoint for %i seconds. Time to load new checkpoint', t1-t0)
           _ = util.load_ckpt(self._saver, self._sess)
           t0 = time.time()
+        break # the puprose of this work is to be able to test on a single file
 
   def write_for_rouge(self, reference_sents, decoded_words, ex_index):
     """Write output to file in correct format for eval with pyrouge. This is called in single_pass mode.

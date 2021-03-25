@@ -8,6 +8,8 @@ I highly advise to experiment it with Google Colab as it provides a base working
 
 This notebook is made in the context of the [Natural Language Processing](https://moodle.polytechnique.fr/course/view.php?id=10247) course with [Telecom Paris](https://www.telecom-paris.fr/), in IP Paris's Master for Data Science ⚔️
 
+---
+
 ## Demo of the summary generation
 
 ![demo-summary-gen](demo.gif)

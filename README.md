@@ -12,7 +12,7 @@ This notebook is made in the context of the [Natural Language Processing](https:
 
 ## Demo of the summary generation
 
-![demo-summary-gen](demo.gif)
+<img src="demo.gif" width="100%" height="auto">
 
 ## Disclaimer
 

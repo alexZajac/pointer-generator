@@ -11,7 +11,7 @@ and available here:
  <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Attention Visualizer</title>
+  <title>Attention Visualizer for Pointer-Generator Networks with Coverage</title>
   <meta name="description" content="">
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,8 +19,8 @@ and available here:
   <script src="external/jquery-3.1.0.min.js"></script>
   <script src="external/underscore-min.js"></script>
   <script src="external/sprintf.min.js"></script>
-  <link href='http://fonts.googleapis.com/css?family=Cousine' rel='stylesheet' type='text/css'>
-
+  <link href='https://fonts.googleapis.com/css?family=Cousine' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
   <style>
 body {
   /* background: linear-gradient(#ccc, #fff); */
@@ -31,6 +31,10 @@ body {
   justify-content:center;
   background-color: #00203F;
   color: #00203F;
+}
+h1, h2 {
+  font-family: 'Dela Gothic One', cursive;
+  font-size-adjust: 0.58;
 }
 .letter {
   flex: 1;
@@ -71,6 +75,13 @@ body {
   right: -3px;
   top: 1px;
   transform: rotate(1.4deg);
+}
+.highlight-up {
+  color:white; 
+  font-weight:bold; 
+  display:inline;
+  padding: 2px;
+  text-transform: uppercase;
 }
   </style>
   <script>
@@ -122,8 +133,8 @@ body {
       // Note we only have attention distribution over the portion of the article before truncation
       if (i==attn_len) {
         dnew0 = div.append('div');
-        dnew0.attr('class', 'd')
-          .attr('style', 'color:white; font-weight:bold; display:inline; background-color: #256ADC;') // apply this style
+        dnew0.attr('class', 'highlight-up')
+          .attr('style', 'background-color: #256ADC;') // apply this style
           .html('ARTICLE TRUNCATED HERE. ');
         break
       }
@@ -197,7 +208,7 @@ body {
     function json_success(data) {
       // Displays the data
       console.log("success!")
-      d3.select("#header_mark").html("<h1>Visualize summary, attention and the probability of generation on your own content 🧬</h1>")
+      d3.select("#header_mark").html("<h1>Visualize summary, attention and the probability of generation on your own content ✍️</h1>")
       gdata = data; // store globally
       render_art(d3.select("#art"), gdata.article_lst, gdata.networks_output[0], null, null);
       render_dec(d3.select("#dec-s2s"), gdata, 0);
@@ -256,6 +267,19 @@ body {
       <div id="dec-pgen_cov">
         generated summary goes here
       </div>
+      <h2>A few notes</h2>
+      <p>
+        The amount of attention ported to the words from the source content is reported in <span class="highlight-up"
+          style="background-color: hsl(347,91%,60%)">RED</span>, and is different for all the decoded summaries.
+      </p>
+      <p>
+        The text before the truncation in <span class="highlight-up" style="background-color: #256ADC">BLUE</span> was passed
+        as input to the networks with respect to the <code>max_words_input</code> parameter.
+      </p>
+      <p>The value of p_gen, being high when generating words from the base vocabulary and low when pointing to the source
+        content,
+        is showed in the decoded summaries in <span class="highlight-up"
+          style="background-color: hsl(154,91%,60%)">GREEN</span>.</p>
     </div>
   </body>
 </html>

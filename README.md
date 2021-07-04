@@ -1,4 +1,4 @@
-# A Playground for Pointer-Generator Networks with Coverge 👨‍🔬
+# A Playground for Pointer-Generator Networks with Coverage 👨‍🔬
 
 An interactive demo for **"Get To The Point: Summarization with Pointer-Generator Networks"**, [available here](https://www.aclweb.org/anthology/P17-1099/) by Abigail See, Peter J Liu, and Christopher Manning.
 
